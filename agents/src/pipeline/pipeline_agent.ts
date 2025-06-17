@@ -42,7 +42,13 @@ import type { SentenceTokenizer, WordTokenizer } from '../tokenize/tokenizer.js'
 import { TextAudioSynchronizer, defaultTextSyncOptions } from '../transcription.js';
 import type { TTS } from '../tts/index.js';
 import { TTSEvent, StreamAdapter as TTSStreamAdapter } from '../tts/index.js';
-import { AsyncIterableQueue, CancellablePromise, Future, gracefullyCancel } from '../utils.js';
+import {
+  AsyncIterableQueue,
+  CancellablePromise,
+  Future,
+  gracefullyCancel,
+  beep,
+} from '../utils.js';
 import { type VAD, type VADEvent, VADEventType } from '../vad.js';
 import type { SpeechSource, SynthesisHandle } from './agent_output.js';
 import { AgentOutput } from './agent_output.js';
@@ -451,6 +457,9 @@ export class VoicePipelineAgent extends (EventEmitter as new () => TypedEmitter<
   }
 
   #updateState(state: AgentState, delay = 0) {
+    if (state === 'thinking') {
+      beep();
+    }
     const runTask = (delay: number): CancellablePromise<void> => {
       return new CancellablePromise(async (resolve, _, onCancel) => {
         let cancelled = false;
@@ -805,6 +814,7 @@ export class VoicePipelineAgent extends (EventEmitter as new () => TypedEmitter<
       this.emit(VPAEvent.FUNCTION_CALLS_COLLECTED, newFunctionCalls);
       const calledFuncs: FunctionCallInfo[] = [];
       for (const func of newFunctionCalls) {
+        beep();
         const task = func.func.execute(func.params).then(
           (result) => ({ name: func.name, toolCallId: func.toolCallId, result }),
           (error) => ({ name: func.name, toolCallId: func.toolCallId, error }),
