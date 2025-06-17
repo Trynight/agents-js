@@ -29,7 +29,7 @@ import * as llm from '../llm/index.js';
 import { log } from '../log.js';
 import type { MultimodalLLMMetrics } from '../metrics/base.js';
 import { TextAudioSynchronizer, defaultTextSyncOptions } from '../transcription.js';
-import { findMicroTrackId } from '../utils.js';
+import { findMicroTrackId, beep } from '../utils.js';
 import { AgentPlayout, type PlayoutHandle } from './agent_playout.js';
 
 /**
@@ -371,6 +371,7 @@ export class MultimodalAgent extends EventEmitter {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.#session.on('function_call_started', (ev: any) => {
+        beep();
         this.#pendingFunctionCalls.add(ev.callId);
         this.#updateState();
       });
@@ -545,6 +546,9 @@ export class MultimodalAgent extends EventEmitter {
     if (this.room?.isConnected && this.room.localParticipant) {
       const currentState = this.room.localParticipant.attributes![AGENT_STATE_ATTRIBUTE];
       if (currentState !== state) {
+        if (state === 'thinking') {
+          beep();
+        }
         this.room.localParticipant.setAttributes({
           [AGENT_STATE_ATTRIBUTE]: state,
         });

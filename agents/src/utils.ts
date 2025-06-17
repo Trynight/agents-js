@@ -339,3 +339,8 @@ export class AudioEnergyFilter {
     return false;
   }
 }
+
+/** Emit a beep through stdout. */
+export const beep = () => {
+  process.stdout.write('\x07');
+};
